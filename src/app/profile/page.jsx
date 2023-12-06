@@ -4,40 +4,65 @@ import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 const ProfilePage = () => {
   const session = useSession();
   const [userName, setUserName] = useState('');
   const [image, setImage] = useState('');
-  const [saved, setSaved] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
   const { status } = session;
 
   useEffect(() => {
     if (status === 'authenticated') {
       setUserName(session.data.user.name);
       setImage(session.data.user.image);
+      fetch('/api/profile').then(response => {
+        response.json().then(data => {
+          setPhone(data.phone);
+          setStreetAddress(data.streetAddress);
+          setPostalCode(data.postalCode);
+          setCity(data.city);
+          setCountry(data.country);
+        });
+      });
     }
   }, [session, status]);
 
   const handleProfileInfoUpdate = async e => {
     e.preventDefault();
 
-    setSaved(false);
-    setIsSaving(true);
+    const savignPromise = new Promise(async (resolve, reject) => {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userName,
+          image: image,
+          phone: phone,
+          streetAddress: streetAddress,
+          postalCode: postalCode,
+          city: city,
+          country: country,
+        }),
+      });
 
-    const response = await fetch('/api/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: userName, image: image }),
+      if (response.ok) {
+        resolve();
+      } else {
+        reject();
+      }
     });
 
-    setIsSaving(false);
-
-    if (response.ok) {
-      setSaved(true);
-    }
+    await toast.promise(savignPromise, {
+      loading: 'Saving...',
+      success: 'Profile saved!',
+      error: 'Error saved profile!',
+    });
   };
 
   const handleFileChange = async e => {
@@ -49,16 +74,23 @@ const ProfilePage = () => {
       const data = new FormData();
       data.set('file', files[0]);
 
-      setIsUploading(true);
-
-      const response = await fetch('/api/upload', {
+      const uploadPromise = fetch('/api/upload', {
         method: 'POST',
         body: data,
+      }).then(response => {
+        if (response.ok) {
+          return response.json().then(link => {
+            setImage(link);
+          });
+        }
+        throw new Error('Something went wrong');
       });
 
-      const link = await response.json();
-      setImage(link);
-      setIsUploading(false);
+      await toast.promise(uploadPromise, {
+        loading: 'Uploading...',
+        success: 'Upload complete!',
+        error: 'Upload error',
+      });
     }
   };
 
@@ -74,25 +106,7 @@ const ProfilePage = () => {
       <h1 className={'text-center text-primary text-4xl mb-4'}>Profile</h1>
 
       <div className={'max-w-md mx-auto'}>
-        {saved && (
-          <h2 className={'text-center bg-green-100 p-4 rounded-lg border border-green-300'}>
-            Profile saved!
-          </h2>
-        )}
-
-        {isSaving && (
-          <h2 className={'text-center bg-blue-100 p-4 rounded-lg border border-blue-300'}>
-            Saving...
-          </h2>
-        )}
-
-        {isUploading && (
-          <h2 className={'text-center bg-blue-100 p-4 rounded-lg border border-blue-300'}>
-            Uploading...
-          </h2>
-        )}
-
-        <div className={'flex gap-4 items-center'}>
+        <div className={'flex gap-4'}>
           <div>
             <div className={'p-2 rounded-lg relative max-w-[120px]'}>
               {image && (
@@ -119,14 +133,68 @@ const ProfilePage = () => {
           </div>
 
           <form className={'grow'} onSubmit={handleProfileInfoUpdate}>
+            <label>First and last name</label>
+
             <input
               type='text'
               placeholder={'First and last name'}
               value={userName}
               onChange={e => setUserName(e.target.value)}
             />
-            <input type='email' disabled={true} value={session.data.user.email} />
 
+            <label>Email</label>
+            <input
+              type='email'
+              disabled={true}
+              value={session.data.user.email}
+              placeholder={'email'}
+            />
+
+            <label>Phone</label>
+            <input
+              type='tel'
+              placeholder={'Phone number'}
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+            />
+
+            <label>Street address</label>
+            <input
+              type='text'
+              placeholder={'Street address'}
+              value={streetAddress}
+              onChange={e => setStreetAddress(e.target.value)}
+            />
+
+            <div className={'flex gap-2'}>
+              <div>
+                <label>Postal code</label>
+                <input
+                  type='text'
+                  placeholder={'Postal code'}
+                  value={postalCode}
+                  onChange={e => setPostalCode(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label>City</label>
+                <input
+                  type='text'
+                  placeholder={'City'}
+                  value={city}
+                  onChange={e => setCity(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <label>Country</label>
+            <input
+              type='text'
+              placeholder={'Country'}
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+            />
             <button type={'submit'}>Save</button>
           </form>
         </div>
