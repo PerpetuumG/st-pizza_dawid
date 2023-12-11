@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import UserTabs from '@/components/layout/UserTabs';
+import EditableImage from '@/components/layout/EditableImage';
 
 const ProfilePage = () => {
   const session = useSession();
@@ -18,6 +19,7 @@ const ProfilePage = () => {
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [profileFetched, setProfileFetched] = useState(false);
   const { status } = session;
 
   useEffect(() => {
@@ -32,6 +34,7 @@ const ProfilePage = () => {
           setCity(data.city);
           setCountry(data.country);
           setIsAdmin(data.admin);
+          setProfileFetched(true);
         });
       });
     }
@@ -69,38 +72,10 @@ const ProfilePage = () => {
     });
   };
 
-  const handleFileChange = async e => {
-    e.preventDefault();
-
-    const files = e.target.files;
-
-    if (files.length === 1) {
-      const data = new FormData();
-      data.set('file', files[0]);
-
-      const uploadPromise = fetch('/api/upload', {
-        method: 'POST',
-        body: data,
-      }).then(response => {
-        if (response.ok) {
-          return response.json().then(link => {
-            setImage(link);
-          });
-        }
-        throw new Error('Something went wrong');
-      });
-
-      await toast.promise(uploadPromise, {
-        loading: 'Uploading...',
-        success: 'Upload complete!',
-        error: 'Upload error',
-      });
-    }
-  };
-
-  if (status === 'loading') {
+  if (status === 'loading' || !profileFetched) {
     return 'Loading...';
   }
+
   if (status === 'unauthenticated') {
     return redirect('/login');
   }
@@ -109,30 +84,11 @@ const ProfilePage = () => {
     <section className={'mt-8'}>
       <UserTabs isAdmin={isAdmin} />
 
-      <div className={'max-w-md mx-auto mt-8'}>
+      <div className={'max-w-2xl mx-auto mt-8'}>
         <div className={'flex gap-4'}>
           <div>
             <div className={'p-2 rounded-lg relative max-w-[120px]'}>
-              {image && (
-                <Image
-                  className={'rounded-lg w-full h-full mb-1'}
-                  src={image}
-                  alt={'avatar'}
-                  width={250}
-                  height={250}
-                />
-              )}
-
-              <label>
-                <input type='file' className={'hidden'} onChange={handleFileChange} />
-                <span
-                  className={
-                    'block border border-gray-300 rounded-lg p-2 text-center cursor-pointer'
-                  }
-                >
-                  Edit
-                </span>
-              </label>
+              <EditableImage link={image} setLink={setImage} />
             </div>
           </div>
 
