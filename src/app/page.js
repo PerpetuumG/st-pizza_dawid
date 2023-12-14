@@ -10,7 +10,7 @@ export default function Home() {
 
       <HomeMenu />
 
-      <section className={'text-center my-16'}>
+      <section className={'text-center my-16'} id={'about'}>
         <SectionHeaders subHeader={'Our story'} mainHeader={'About us'} />
 
         <div className={'text-gray-500 max-w-md mx-auto mt-4 flex flex-col gap-4'}>
@@ -36,7 +36,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={'text-center my-8'}>
+      <section className={'text-center my-8'} id={'contact'}>
         <SectionHeaders subHeader={"Don't hasitate "} mainHeader={'Contact us'} />
 
         <div className={'mt-8'}>
