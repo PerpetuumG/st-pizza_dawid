@@ -3,6 +3,7 @@
 import EditableImage from '@/components/layout/EditableImage';
 import { useState } from 'react';
 import { useProfile } from '@/components/UseProfile';
+import AddressInputs from '@/components/layout/AddressInputs';
 
 const UserForm = ({ user, onSave }) => {
   const [userName, setUserName] = useState(user?.name || '');
@@ -15,6 +16,14 @@ const UserForm = ({ user, onSave }) => {
   const [admin, setAdmin] = useState(user?.admin || false);
   const { data: loggedInUserData } = useProfile();
 
+  const handleAddressChange = (propName, value) => {
+    if (propName === 'phone') setPhone(value);
+    if (propName === 'streetAddress') setStreetAddress(value);
+    if (propName === 'postalCode') setPostalCode(value);
+    if (propName === 'city') setCity(value);
+    if (propName === 'country') setCountry(value);
+  };
+
   return (
     <div className={'flex gap-4'}>
       <div>
@@ -26,7 +35,16 @@ const UserForm = ({ user, onSave }) => {
       <form
         className={'grow'}
         onSubmit={e =>
-          onSave(e, { name: userName, image, phone, streetAddress, postalCode, city, country, admin })
+          onSave(e, {
+            name: userName,
+            image,
+            phone,
+            streetAddress,
+            postalCode,
+            city,
+            country,
+            admin,
+          })
         }
       >
         <label>First and last name</label>
@@ -41,50 +59,15 @@ const UserForm = ({ user, onSave }) => {
         <label>Email</label>
         <input type='email' disabled={true} value={user.email} placeholder={'email'} />
 
-        <label>Phone</label>
-        <input
-          type='tel'
-          placeholder={'Phone number'}
-          value={phone}
-          onChange={e => setPhone(e.target.value)}
-        />
-
-        <label>Street address</label>
-        <input
-          type='text'
-          placeholder={'Street address'}
-          value={streetAddress}
-          onChange={e => setStreetAddress(e.target.value)}
-        />
-
-        <div className={'grid grid-cols-2 gap-2'}>
-          <div>
-            <label>Postal code</label>
-            <input
-              type='text'
-              placeholder={'Postal code'}
-              value={postalCode}
-              onChange={e => setPostalCode(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>City</label>
-            <input
-              type='text'
-              placeholder={'City'}
-              value={city}
-              onChange={e => setCity(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <label>Country</label>
-        <input
-          type='text'
-          placeholder={'Country'}
-          value={country}
-          onChange={e => setCountry(e.target.value)}
+        <AddressInputs
+          addressProps={{
+            phone,
+            streetAddress,
+            postalCode,
+            city,
+            country,
+          }}
+          setAddressProps={handleAddressChange}
         />
 
         {loggedInUserData.admin && (
