@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { Order } from '@/models/Order';
-import { retry } from 'next/dist/compiled/@next/font/dist/google/retry';
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {MenuItem} from "@/models/MenuItem";
+import {Order} from "@/models/Order";
+import mongoose from "mongoose";
+import {getServerSession} from "next-auth";
 const stripe = require('stripe')(process.env.STRIPE_SK);
 
-export const POST = async req => {
-  await mongoose.connect(process.env.MONGO_URL);
+export async function POST(req) {
+  mongoose.connect(process.env.MONGO_URL);
 
-  const { cartProducts, address } = await req.json();
+  const {cartProducts, address} = await req.json();
   const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email;
 
@@ -21,25 +21,20 @@ export const POST = async req => {
 
   const stripeLineItems = [];
   for (const cartProduct of cartProducts) {
+
     const productInfo = await MenuItem.findById(cartProduct._id);
 
     let productPrice = productInfo.basePrice;
-
     if (cartProduct.size) {
-      const size = productInfo.sizes.find(
-        size => size._id.toString() === cartProduct.size._id.toString(),
-      );
-
+      const size = productInfo.sizes
+        .find(size => size._id.toString() === cartProduct.size._id.toString());
       productPrice += size.price;
     }
-
     if (cartProduct.extras?.length > 0) {
       for (const cartProductExtraThing of cartProduct.extras) {
         const productExtras = productInfo.extraIngredientPrices;
-        const extraThingInfo = productExtras.find(
-          extra => extra._id.toString() === cartProductExtraThing._id.toString(),
-        );
-
+        const extraThingInfo = productExtras
+          .find(extra => extra._id.toString() === cartProductExtraThing._id.toString());
         productPrice += extraThingInfo.price;
       }
     }
@@ -62,22 +57,22 @@ export const POST = async req => {
     line_items: stripeLineItems,
     mode: 'payment',
     customer_email: userEmail,
-    success_url: process.env.NEXTAUTH_URL + 'orders/' + orderDoc._id.toString() + "?clear-cart=1",
+    success_url: process.env.NEXTAUTH_URL + 'orders/' + orderDoc._id.toString() + '?clear-cart=1',
     cancel_url: process.env.NEXTAUTH_URL + 'cart?canceled=1',
-    metadata: { orderId: orderDoc._id.toString() },
+    metadata: {orderId:orderDoc._id.toString()},
     payment_intent_data: {
-      metadata: { orderId: orderDoc._id.toString() },
+      metadata:{orderId:orderDoc._id.toString()},
     },
     shipping_options: [
       {
         shipping_rate_data: {
           display_name: 'Delivery fee',
           type: 'fixed_amount',
-          fixed_amount: { amount: 500, currency: 'USD' },
+          fixed_amount: {amount: 500, currency: 'USD'},
         },
-      },
+      }
     ],
   });
 
   return Response.json(stripeSession.url);
-};
+}
