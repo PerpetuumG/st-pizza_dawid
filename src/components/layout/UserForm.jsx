@@ -25,7 +25,7 @@ const UserForm = ({ user, onSave }) => {
   };
 
   return (
-    <div className={'flex gap-4'}>
+    <div className={'md:flex gap-4'}>
       <div>
         <div className={'p-2 rounded-lg relative max-w-[120px]'}>
           <EditableImage link={image} setLink={setImage} />
@@ -79,7 +79,7 @@ const UserForm = ({ user, onSave }) => {
                 className={''}
                 value={'1'}
                 checked={admin}
-                onClick={e => setAdmin(e.target.checked)}
+                onChange={e => setAdmin(e.target.checked)}
               />
               <span>Admin</span>
             </label>

@@ -7,7 +7,7 @@ const UserTabs = ({ isAdmin }) => {
   const path = usePathname();
 
   return (
-    <div className={'flex justify-center mx-auto gap-2 tabs'}>
+    <div className={'flex justify-center mx-auto gap-2 tabs flex-wrap'}>
       <Link className={path === '/profile' ? 'active' : ''} href={'/profile'}>
         Profile
       </Link>
@@ -22,11 +22,11 @@ const UserTabs = ({ isAdmin }) => {
           <Link className={path.includes('/users') ? 'active' : ''} href={'/users'}>
             Users
           </Link>
-          <Link className={path === '/orders' ? 'active' : ''} href={'/orders'}>
-            Orders
-          </Link>
         </>
       )}
+      <Link className={path === '/orders' ? 'active' : ''} href={'/orders'}>
+        Orders
+      </Link>
     </div>
   );
 };

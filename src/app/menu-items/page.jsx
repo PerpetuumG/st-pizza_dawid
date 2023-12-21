@@ -46,7 +46,11 @@ const MenuItemsPage = () => {
         <div className={'grid grid-cols-3 gap-2'}>
           {menuItems?.length > 0 &&
             menuItems.map(item => (
-              <Link href={'/menu-items/edit/' + item._id} className={'bg-gray-200 rounded-lg p-4'}>
+              <Link
+                key={item._id}
+                href={'/menu-items/edit/' + item._id}
+                className={'bg-gray-200 rounded-lg p-4'}
+              >
                 <div className={'relative'}>
                   <Image
                     className={'rounded-md'}
